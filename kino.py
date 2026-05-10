@@ -40,12 +40,17 @@ async def kino_ber(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kod = update.message.text.strip()
     if kod in kinolar:
         kino = kinolar[kod]
-        tavsif = kino.get("tavsif", "")
+        if isinstance(kino, dict):
+            file_id = kino["file_id"]
+            tavsif = kino.get("tavsif", "")
+        else:
+            file_id = kino
+            tavsif = ""
         caption = f"🎬 Kino kodi: {kod}"
         if tavsif:
             caption += f"\n\n{tavsif}"
         await update.message.reply_video(
-            video=kino["file_id"],
+            video=file_id,
             caption=caption
         )
     else:
