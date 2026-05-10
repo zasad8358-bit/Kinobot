@@ -4,7 +4,6 @@ from telegram import Update
 from telegram.ext import Application, MessageHandler, CommandHandler, filters, ContextTypes
 
 TOKEN = "8365272312:AAH4jaSNaQ95t_Tn2P_KjMvcqBsWXXzmHuM"
-
 FAYL = "kinolar.json"
 
 def load():
@@ -20,13 +19,17 @@ def save(data):
 kinolar = load()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🎬 Kino botga xush kelibsiz!\n\nKino raqamini yuboring!")
+    await update.message.reply_text("🎬 Kino botga xush kelibsiz!\n\nKino kodini yuboring!")
 
 async def kanal_kino(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = update.channel_post
     if msg and msg.video:
         kod = str(len(kinolar) + 1)
-        kinolar[kod] = msg.video.file_id
+        caption = msg.caption or ""
+        kinolar[kod] = {
+            "file_id": msg.video.file_id,
+            "tavsif": caption
+        }
         save(kinolar)
         await context.bot.send_message(
             chat_id=msg.chat.id,
@@ -36,9 +39,14 @@ async def kanal_kino(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def kino_ber(update: Update, context: ContextTypes.DEFAULT_TYPE):
     kod = update.message.text.strip()
     if kod in kinolar:
+        kino = kinolar[kod]
+        tavsif = kino.get("tavsif", "")
+        caption = f"🎬 Kino kodi: {kod}"
+        if tavsif:
+            caption += f"\n\n{tavsif}"
         await update.message.reply_video(
-            video=kinolar[kod],
-            caption=f"🎬 Kino kodi: {kod}"
+            video=kino["file_id"],
+            caption=caption
         )
     else:
         await update.message.reply_text("❌ Bunday kodli kino topilmadi!")
